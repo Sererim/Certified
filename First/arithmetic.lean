@@ -64,3 +64,22 @@ def compile (e : EXP) : prog :=
 #eval progDenote (compile (EXP.Const 42)) []
 #eval progDenote (compile (EXP.BINARY_OP BINARY_OP.Plus (EXP.Const 2) (EXP.Const 2))) []
 #eval progDenote (compile (EXP.BINARY_OP BINARY_OP.Times (EXP.Const 6) (EXP.Const 7))) []
+
+
+-- Let's prove that compile works corretly
+theorem compile_correctly : ∀ e, progDenote (compile e) [] = some (expDenote e :: []) :=
+  λ e => match e with
+  | EXP.Const n => rfl
+  | EXP.BINARY_OP b e1 e2 =>
+    have IH1 : progDenote (compile e1) [] = some (expDenote e1 :: []) :=
+      compile_correctly e1
+    have IH2 : progDenote (compile e2) [] = some (expDenote e2 :: []) :=
+      compile_correctly e2
+
+show progDenote (compile (EXP.BINARY_OP b e1 e2)) [] =
+  some (expDenote (EXP.BINARY_OP b e1 e2) :: [])
+  from calc
+    progDenote (compile (EXP.BINARY_OP b e1 e2)) [] =
+    progDenote (List.append (List.append (compile e2) (compile e1)) [ instr.iBINARY_OP b ]) [] := by rfl
+
+-- still thinking about it...
